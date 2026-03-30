@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wellington Weather — Horse Country, FL</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+
+    :root {
+      --cream: #f5f0e8;
+      --tan: #c8a96e;
+      --brown: #7a4f2e;
+      --dark-brown: #3e2109;
+      --green: #5a7a3a;
+      --sky-blue: #87ceeb;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background-color: var(--cream);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--dark-brown);
+      color: var(--cream);
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+    }
+
+    header .horseshoe { font-size: 2rem; }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      letter-spacing: 0.04em;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: var(--tan);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── Pasture scene ── */
+    .scene {
+      position: relative;
+      height: 200px;
+      background: linear-gradient(180deg, #a8d8ea 0%, #c8e8f5 55%, #7db55a 55%, #5a9940 100%);
+      overflow: hidden;
+    }
+
+    .scene .sun {
+      position: absolute;
+      top: 20px;
+      right: 80px;
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle, #ffe066 60%, #ffd000 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 30px #ffe06688;
+    }
+
+    .scene .cloud {
+      position: absolute;
+      background: #fff;
+      border-radius: 50px;
+      opacity: 0.85;
+    }
+    .scene .cloud::before,
+    .scene .cloud::after {
+      content: '';
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+    }
+    .cloud-1 { width: 90px; height: 28px; top: 30px; left: 10%; }
+    .cloud-1::before { width: 40px; height: 40px; top: -20px; left: 12px; }
+    .cloud-1::after  { width: 30px; height: 30px; top: -14px; left: 40px; }
+
+    .cloud-2 { width: 70px; height: 22px; top: 55px; left: 38%; opacity: 0.6; }
+    .cloud-2::before { width: 32px; height: 32px; top: -16px; left: 10px; }
+    .cloud-2::after  { width: 24px; height: 24px; top: -11px; left: 32px; }
+
+    /* Fence */
+    .fence {
+      position: absolute;
+      bottom: 38%;
+      left: 0; right: 0;
+      height: 28px;
+    }
+    .fence-rail {
+      position: absolute;
+      left: 0; right: 0;
+      height: 5px;
+      background: #8b5e3c;
+      border-radius: 2px;
+    }
+    .fence-rail.top    { top: 4px; }
+    .fence-rail.bottom { bottom: 4px; }
+
+    .fence-post {
+      position: absolute;
+      width: 8px;
+      background: #6b4423;
+      height: 100%;
+      border-radius: 2px;
+      bottom: 0;
+    }
+
+    /* Horse SVG */
+    .horse-wrap {
+      position: absolute;
+      bottom: 38%;
+      left: 12%;
+      width: 160px;
+    }
+
+    .horse-wrap svg { width: 100%; height: auto; }
+
+    /* ── Weather card ── */
+    main {
+      flex: 1;
+      padding: 2rem 1.5rem;
+      max-width: 780px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    #weather-card {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(62,33,9,0.13);
+      overflow: hidden;
+    }
+
+    .card-top {
+      background: linear-gradient(135deg, var(--brown) 0%, var(--dark-brown) 100%);
+      color: var(--cream);
+      padding: 1.8rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .card-top .location { font-size: 0.85rem; color: var(--tan); text-transform: uppercase; letter-spacing: 0.1em; }
+    .card-top .temp-big { font-family: 'Playfair Display', serif; font-size: 4.5rem; line-height: 1; }
+    .card-top .condition { font-size: 1.1rem; margin-top: 0.3rem; }
+    .card-top .weather-icon { font-size: 5rem; line-height: 1; }
+
+    .card-body {
+      padding: 1.5rem 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-box {
+      background: var(--cream);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .stat-box .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--brown);
+      font-weight: 700;
+    }
+    .stat-box .value { font-size: 1.4rem; font-weight: 700; color: var(--dark-brown); }
+    .stat-box .sub   { font-size: 0.8rem; color: #888; }
+
+    /* Horse advice banner */
+    .horse-advice {
+      margin: 0 2rem 1.5rem;
+      background: linear-gradient(90deg, #f0e8d4, #e8dcc8);
+      border-left: 5px solid var(--tan);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      gap: 0.7rem;
+      align-items: flex-start;
+    }
+    .horse-advice .icon { font-size: 1.6rem; }
+    .horse-advice .text { font-size: 0.9rem; color: var(--dark-brown); line-height: 1.5; }
+    .horse-advice .text strong { font-weight: 700; }
+
+    /* Hourly forecast */
+    .section-title {
+      padding: 0 2rem 0.7rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--dark-brown);
+      border-bottom: 2px solid var(--cream);
+    }
+
+    .hourly-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 0.8rem;
+      padding: 1rem 2rem 1.2rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--tan) transparent;
+    }
+
+    .hour-chip {
+      flex: 0 0 auto;
+      background: var(--cream);
+      border-radius: 10px;
+      padding: 0.7rem 1rem;
+      text-align: center;
+      min-width: 70px;
+    }
+    .hour-chip .h-time  { font-size: 0.72rem; color: var(--brown); font-weight: 700; }
+    .hour-chip .h-icon  { font-size: 1.5rem; margin: 0.2rem 0; }
+    .hour-chip .h-temp  { font-size: 0.95rem; font-weight: 700; color: var(--dark-brown); }
+
+    /* 7-day forecast */
+    .daily-list {
+      padding: 0.5rem 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .day-row {
+      display: flex;
+      align-items: center;
+      background: var(--cream);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      gap: 1rem;
+    }
+    .day-row .day-name  { width: 80px; font-weight: 700; color: var(--dark-brown); font-size: 0.85rem; }
+    .day-row .day-icon  { font-size: 1.3rem; flex: 0 0 auto; }
+    .day-row .day-desc  { flex: 1; font-size: 0.8rem; color: #666; }
+    .day-row .day-temps { font-size: 0.9rem; font-weight: 700; color: var(--dark-brown); white-space: nowrap; }
+    .day-row .day-low   { color: #888; font-weight: 400; }
+
+    /* Loading / error states */
+    #loading, #error {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--brown);
+    }
+    #error { color: #c0392b; }
+    #loading .spinner {
+      font-size: 3rem;
+      animation: gallop 0.8s steps(1) infinite;
+    }
+    @keyframes gallop {
+      0%  { content: '🐎'; transform: translateX(0); }
+      50% { transform: translateX(6px); }
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.72rem;
+      color: #aaa;
+    }
+
+    @media (max-width: 500px) {
+      .card-top .temp-big { font-size: 3.5rem; }
+      .card-top .weather-icon { font-size: 3.5rem; }
+      .card-body { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="horseshoe">🧲</span>
+  <div>
+    <h1>Wellington Weather</h1>
+    <p>Horse Country &bull; Wellington, Florida</p>
+  </div>
+</header>
+
+<!-- Pasture scene -->
+<div class="scene">
+  <div class="sun"></div>
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+
+  <!-- Simple HTML/CSS horse (profile silhouette) -->
+  <div class="horse-wrap">
+    <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" aria-label="Horse silhouette">
+      <!-- Body -->
+      <ellipse cx="105" cy="75" rx="55" ry="28" fill="#5a3010"/>
+      <!-- Neck -->
+      <polygon points="70,60 85,30 100,35 90,65" fill="#5a3010"/>
+      <!-- Head -->
+      <ellipse cx="82" cy="24" rx="18" ry="12" fill="#5a3010" transform="rotate(-20,82,24)"/>
+      <!-- Snout -->
+      <ellipse cx="70" cy="30" rx="10" ry="7" fill="#6b3a14" transform="rotate(-20,70,30)"/>
+      <!-- Nostril -->
+      <ellipse cx="64" cy="32" rx="2.5" ry="2" fill="#3e2109"/>
+      <!-- Eye -->
+      <circle cx="86" cy="18" r="2.8" fill="#1a0d00"/>
+      <!-- Ear -->
+      <polygon points="92,10 97,2 100,12" fill="#5a3010"/>
+      <!-- Mane -->
+      <path d="M88,14 Q95,22 96,35 Q100,42 90,45 Q98,32 94,22 Q91,16 88,14Z" fill="#2d1505"/>
+      <!-- Tail -->
+      <path d="M158,60 Q178,48 182,60 Q176,68 172,75 Q168,60 162,68 Q160,58 158,60Z" fill="#2d1505"/>
+      <!-- Front legs -->
+      <rect x="80" y="98" width="10" height="20" rx="3" fill="#4a2a0e"/>
+      <rect x="95" y="98" width="10" height="18" rx="3" fill="#4a2a0e"/>
+      <!-- Back legs -->
+      <rect x="125" y="98" width="10" height="20" rx="3" fill="#4a2a0e"/>
+      <rect x="140" y="100" width="10" height="18" rx="3" fill="#4a2a0e"/>
+      <!-- Hooves -->
+      <rect x="80" y="115" width="10" height="5" rx="2" fill="#1a0800"/>
+      <rect x="95" y="113" width="10" height="5" rx="2" fill="#1a0800"/>
+      <rect x="125" y="115" width="10" height="5" rx="2" fill="#1a0800"/>
+      <rect x="140" y="115" width="10" height="5" rx="2" fill="#1a0800"/>
+    </svg>
+  </div>
+
+  <!-- Fence posts (generated inline) -->
+  <div class="fence" id="fence"></div>
+</div>
+
+<main>
+  <div id="weather-card">
+    <div id="loading">
+      <div class="spinner">🐎</div>
+      <p style="margin-top:1rem;">Galloping over to fetch the weather…</p>
+    </div>
+    <div id="error" style="display:none;"></div>
+    <div id="weather-content" style="display:none;"></div>
+  </div>
+</main>
+
+<footer>
+  Weather data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> &bull;
+  Wellington, FL 33414 &bull; Updated every 15 min
+</footer>
+
+<script>
+  // ── Fence builder ──────────────────────────────────────────
+  (function buildFence() {
+    const fence = document.getElementById('fence');
+    const rails = '<div class="fence-rail top"></div><div class="fence-rail bottom"></div>';
+    fence.innerHTML = rails;
+    const spacing = 60;
+    for (let x = 0; x < window.innerWidth + spacing; x += spacing) {
+      const p = document.createElement('div');
+      p.className = 'fence-post';
+      p.style.left = x + 'px';
+      fence.appendChild(p);
+    }
+  })();
+
+  // ── Weather code → emoji + description ────────────────────
+  function interpretWMO(code, isDay) {
+    const d = isDay ? '☀️' : '🌙';
+    const map = {
+      0:  [d,         'Clear sky'],
+      1:  [d,         'Mainly clear'],
+      2:  ['⛅',      'Partly cloudy'],
+      3:  ['☁️',      'Overcast'],
+      45: ['🌫️',     'Foggy'],
+      48: ['🌫️',     'Icy fog'],
+      51: ['🌦️',     'Light drizzle'],
+      53: ['🌦️',     'Drizzle'],
+      55: ['🌧️',     'Heavy drizzle'],
+      61: ['🌧️',     'Light rain'],
+      63: ['🌧️',     'Moderate rain'],
+      65: ['🌧️',     'Heavy rain'],
+      71: ['🌨️',     'Light snow'],
+      73: ['🌨️',     'Moderate snow'],
+      75: ['❄️',      'Heavy snow'],
+      80: ['🌦️',     'Rain showers'],
+      81: ['🌧️',     'Heavy showers'],
+      82: ['⛈️',      'Violent showers'],
+      95: ['⛈️',      'Thunderstorm'],
+      96: ['⛈️',      'Thunderstorm w/ hail'],
+      99: ['⛈️',      'Thunderstorm w/ hail'],
+    };
+    return map[code] || ['🌡️', 'Unknown'];
+  }
+
+  // ── Horse-country advice based on conditions ───────────────
+  function horseAdvice(tempF, windMph, rain, uvIndex) {
+    if (rain > 0.1)
+      return '🌧️ <strong>Rain in the forecast</strong> — check arena footing before heading out. Consider bringing horses in if lightning is nearby.';
+    if (tempF >= 95)
+      return '🥵 <strong>Hot day ahead!</strong> Ensure fresh water is always available. Limit strenuous riding to early morning or evening. Watch for signs of heat stress.';
+    if (tempF <= 45)
+      return '🥶 <strong>Cooler temperatures today.</strong> Blankets may be needed overnight. Warm up horses slowly before work and check water troughs for ice.';
+    if (windMph >= 25)
+      return '💨 <strong>Breezy conditions</strong> — horses may be more spooky in high winds. Keep an eye on jumps and equipment in outdoor arenas.';
+    if (uvIndex >= 8)
+      return '☀️ <strong>High UV today.</strong> Fly masks with UV protection are a good idea. Provide shaded areas and avoid peak-sun trail rides.';
+    if (tempF >= 80 && tempF < 95)
+      return '😎 <strong>Warm and pleasant</strong> — great conditions for a trail ride through the preserve or a schooling session. Stay hydrated!';
+    return '🐴 <strong>Beautiful Wellington day!</strong> Perfect conditions for polo practice, a hack, or a lesson. Enjoy the ride!';
+  }
+
+  // ── Unit helpers ───────────────────────────────────────────
+  const toF = c => Math.round(c * 9/5 + 32);
+  const fmt  = n => Math.round(n);
+
+  // ── Day name ───────────────────────────────────────────────
+  function dayName(iso, idx) {
+    if (idx === 0) return 'Today';
+    if (idx === 1) return 'Tomorrow';
+    return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
+  }
+
+  // ── Fetch & render ──────────────────────────────────────────
+  async function fetchWeather() {
+    const LAT = 26.6617, LON = -80.2025;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`
+      + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,`
+      + `wind_gusts_10m,weather_code,is_day,uv_index,precipitation`
+      + `&hourly=temperature_2m,weather_code,precipitation_probability`
+      + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,uv_index_max`
+      + `&temperature_unit=celsius&wind_speed_unit=mph&precipitation_unit=inch`
+      + `&timezone=America%2FNew_York&forecast_days=7`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function render(data) {
+    const c = data.current;
+    const h = data.hourly;
+    const d = data.daily;
+    const now = new Date();
+    const nowHour = now.getHours();
+
+    const [icon, desc] = interpretWMO(c.weather_code, c.is_day);
+    const tempF      = toF(c.temperature_2m);
+    const feelsF     = toF(c.apparent_temperature);
+    const windMph    = fmt(c.wind_speed_10m);
+    const gustMph    = fmt(c.wind_gusts_10m);
+    const humidity   = fmt(c.relative_humidity_2m);
+    const uvIndex    = fmt(c.uv_index);
+    const precipIn   = c.precipitation;
+
+    // Next 12 hours of hourly data (starting from current hour)
+    let hourlyHTML = '';
+    const startIdx = h.time.findIndex(t => new Date(t) >= now);
+    const sliceEnd = Math.min(startIdx + 13, h.time.length);
+    for (let i = startIdx; i < sliceEnd; i++) {
+      const [hIcon] = interpretWMO(h.weather_code[i], 1);
+      const hTemp  = toF(h.temperature_2m[i]);
+      const hTime  = new Date(h.time[i]).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+      const isNow  = i === startIdx;
+      hourlyHTML += `
+        <div class="hour-chip" ${isNow ? 'style="background:#c8a96e22;border:2px solid var(--tan)"' : ''}>
+          <div class="h-time">${isNow ? 'Now' : hTime}</div>
+          <div class="h-icon">${hIcon}</div>
+          <div class="h-temp">${hTemp}°</div>
+        </div>`;
+    }
+
+    // 7-day daily
+    let dailyHTML = '';
+    for (let i = 0; i < d.time.length; i++) {
+      const [dIcon, dDesc] = interpretWMO(d.weather_code[i], 1);
+      const hi  = toF(d.temperature_2m_max[i]);
+      const lo  = toF(d.temperature_2m_min[i]);
+      const name = dayName(d.time[i], i);
+      dailyHTML += `
+        <div class="day-row">
+          <span class="day-name">${name}</span>
+          <span class="day-icon">${dIcon}</span>
+          <span class="day-desc">${dDesc}</span>
+          <span class="day-temps">${hi}° <span class="day-low">/ ${lo}°</span></span>
+        </div>`;
+    }
+
+    const advice = horseAdvice(tempF, windMph, precipIn, uvIndex);
+    const todayHi = toF(d.temperature_2m_max[0]);
+    const todayLo = toF(d.temperature_2m_min[0]);
+
+    document.getElementById('weather-content').innerHTML = `
+      <div class="card-top">
+        <div>
+          <div class="location">Wellington, Palm Beach County, FL</div>
+          <div class="temp-big">${tempF}°F</div>
+          <div class="condition">${desc}</div>
+          <div style="font-size:0.8rem;color:var(--tan);margin-top:0.3rem;">
+            Feels like ${feelsF}°F &bull; H: ${todayHi}° / L: ${todayLo}°
+          </div>
+        </div>
+        <div class="weather-icon">${icon}</div>
+      </div>
+
+      <div class="card-body">
+        <div class="stat-box">
+          <span class="label">💧 Humidity</span>
+          <span class="value">${humidity}%</span>
+          <span class="sub">Relative humidity</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">💨 Wind</span>
+          <span class="value">${windMph} mph</span>
+          <span class="sub">Gusts to ${gustMph} mph</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">☀️ UV Index</span>
+          <span class="value">${uvIndex}</span>
+          <span class="sub">${uvIndex <= 2 ? 'Low' : uvIndex <= 5 ? 'Moderate' : uvIndex <= 7 ? 'High' : 'Very High'}</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">🌧️ Precip</span>
+          <span class="value">${precipIn.toFixed(2)}"</span>
+          <span class="sub">Current hour</span>
+        </div>
+      </div>
+
+      <div class="horse-advice">
+        <span class="icon">🐎</span>
+        <div class="text">${advice}</div>
+      </div>
+
+      <div class="section-title">Hourly Forecast</div>
+      <div class="hourly-scroll">${hourlyHTML}</div>
+
+      <div class="section-title" style="margin-top:0.5rem;">7-Day Outlook</div>
+      <div class="daily-list">${dailyHTML}</div>
+    `;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('weather-content').style.display = 'block';
+  }
+
+  // ── Boot ───────────────────────────────────────────────────
+  fetchWeather()
+    .then(render)
+    .catch(err => {
+      document.getElementById('loading').style.display = 'none';
+      const errEl = document.getElementById('error');
+      errEl.style.display = 'block';
+      errEl.innerHTML = `<p>🐴 Whoops — couldn't fetch the weather right now.</p><p style="font-size:0.8rem;margin-top:0.5rem;">${err.message}</p>`;
+    });
+
+  // Auto-refresh every 15 minutes
+  setInterval(() => fetchWeather().then(render).catch(console.error), 15 * 60 * 1000);
+</script>
+</body>
+</html>
